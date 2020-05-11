@@ -1,2 +1,4 @@
 dataset/covid-chestxray-dataset
 dataset/backup
+.ipynb_checkpoints/
+__pycache__/
