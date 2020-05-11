@@ -3,7 +3,11 @@ from PIL import Image
 from random import random
 
 
-class Majority():
+class CustomTransforms():
+    pass
+
+
+class Majority(CustomTransforms):
 
     def __init__(self, raw_dataset):
         self.dataset = raw_dataset
@@ -20,7 +24,7 @@ class Majority():
             return [new, 0]
 
 
-class RICAP():
+class RICAP(CustomTransforms):
 
     def __init__(self, dataset, beta=1):
         self.dataset = dataset
@@ -59,7 +63,7 @@ class RICAP():
         return [img, label]
         
 
-class SampleParing():
+class SampleParing(CustomTransforms):
     def __init__(self, raw_dataset, minority_only):
         self.dataset = raw_dataset
         self.minority_only = minority_only
@@ -76,7 +80,7 @@ class SampleParing():
             return [new, sample[1]]
             
 
-class Smote():
+class Smote(CustomTransforms):
 
     def __init__(self, raw_dataset, k):
         self.dataset = raw_dataset
@@ -99,6 +103,5 @@ class Smote():
             nearests = self.knn(img)
             for nearest in nearests:
                 new += random() * (nearest - img)
-            #new = (new - new.min()) / (new.max() - new.min()) * 255
             new = Image.fromarray(np.uint8(new))
             return [new, 0]
