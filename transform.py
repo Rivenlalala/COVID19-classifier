@@ -91,7 +91,7 @@ class Smote():
         return self.dataset[nearest[:self.k]]
 
     def __call__(self, sample):
-        if (sample[1] == 1 | random() > 0.5):
+        if (sample[1] == 1 | (random() > 0.5)):
             return sample
         else:
             img = np.array(sample[0], dtype="float64")
