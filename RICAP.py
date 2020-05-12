@@ -20,14 +20,14 @@ pre_processed_norm = CustomFolder(root='dataset/train_n', transform=CustomCompos
 raw = np.array([np.array(image[0], dtype="float") for image in pre_processed])
 raw_norm = np.array([np.array(image[0], dtype="float") for image in pre_processed_norm])
 
-data = CustomCompose([RICAP(raw),
+data = CustomCompose([RICAP(pre_processed),
                       transforms.RandomHorizontalFlip(),
-                      transforms.RandomRotation(10)
+                      transforms.RandomRotation(10),
                       transforms.ToTensor(),
                       transforms.Normalize(mean=[0.5, 0.5, 0.5],
                                            std=[0.5, 0.5, 0.5])])
 
-data_norm = CustomCompose([RICAP(raw_norm),
+data_norm = CustomCompose([RICAP(pre_processed_norm),
                            transforms.RandomHorizontalFlip(),
                            transforms.RandomRotation(10),
                            transforms.ToTensor(),
@@ -43,11 +43,11 @@ testset_unnormalized = CustomFolder(root='dataset/test', transform=test)
 testset_normalized = CustomFolder(root='dataset/test_n', transform=test)
 
 DN = DenseNet121().cuda()
-VGG = VGG16().cuda()
 training(DN, 50,  dataset_unnormalized, testset_unnormalized, "DN-u-R.pth")
+VGG = VGG16().cuda()
 training(VGG, 50, dataset_unnormalized, testset_unnormalized, "vgg-u-R.pth")
 
 DN = DenseNet121().cuda()
-VGG = VGG16().cuda()
 training(DN, 50,  dataset_normalized, testset_normalized, "DN-n-R.pth")
+VGG = VGG16().cuda()
 training(VGG, 50, dataset_normalized, testset_normalized, "vgg-n-R.pth")

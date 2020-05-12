@@ -21,12 +21,12 @@ class Majority(CustomTransforms):
         self.dataset = raw_dataset
     
     def __call__(self, sample):
-        if sample[1] == 0:
+        if (sample[1] == 0) | (random() > 0.9):
             return sample
         else:
             img = np.array(sample[0], dtype="float")
             rand_img = self.dataset[np.random.randint(len(self.dataset))]
-            new = img + (rand_img - img) * random()
+            new = img + (rand_img - img) / 2
             new = Image.fromarray(np.uint8(new))
 
             return new, 0
@@ -60,12 +60,13 @@ class RICAP(CustomTransforms):
                 np.random.randint(w2), np.random.randint(w1)]
         locy = [np.random.randint(h2), np.random.randint(h2),
                 np.random.randint(h1), np.random.randint(h1)]
-        areas = [w1*h1, w2*h1, w1*h2, w2*h2]
+        areas = [w2*h1, w1*h2, w2*h2]
+        label *= w1 * h1 / size ** 2
         for i, area in zip(idx, areas):
             rand_img.append(np.array(self.dataset[i][0]))
             label += self.dataset[i][1] * area / size ** 2
         
-        cat = [np.array(sample[0])[locx[0]:locx[0] + w_[0], locy[0]:locy[0] + h_[0]]]
+        cat = [np.array(sample[0])[locy[0]:locy[0] + h_[0], locx[0]:locx[0] + w_[0]]]
         for i, img in enumerate(rand_img):
             cat.append(img[locy[i + 1]:locy[i + 1] + h_[i + 1], locx[i + 1]:locx[i + 1] + w_[i + 1]])
         img = np.vstack((np.hstack((cat[0], cat[1])), np.hstack((cat[2], cat[3]))))
@@ -106,7 +107,7 @@ class Smote(CustomTransforms):
         return self.dataset[nearest[:self.k]]
 
     def __call__(self, sample):
-        if (sample[1] == 1) | (random() > 0.5):
+        if (sample[1] == 1) | (random() > 0.8):
             return sample
         else:
             img = np.array(sample[0], dtype="float64")
