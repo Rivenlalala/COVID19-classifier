@@ -24,8 +24,8 @@ class VGG16(nn.Module):
     def __init__(self):
         super(VGG16, self).__init__()
         self.vgg16 = torchvision.models.vgg16_bn(pretrained=False, num_classes=1)
-        self.out = nn.Sequential([nn.BatchNorm1d(num_features=1),
-                                  nn.Sigmoid()])
+        self.out = nn.Sequential(nn.BatchNorm1d(num_features=1),
+                                  nn.Sigmoid())
 
 
     def forward(self, x):
