@@ -23,7 +23,7 @@ class Majority(CustomTransforms):
             new = img + (rand_img - img) * random()
             new = Image.fromarray(np.uint8(new))
 
-            return [new, 0]
+            return new, 0
 
 
 class RICAP(CustomTransforms):
@@ -62,7 +62,7 @@ class RICAP(CustomTransforms):
         img = np.hstack((np.vstack((cat[0], cat[1])), np.vstack((cat[2], cat[3]))))
         img = Image.fromarray(img)
 
-        return [img, label]
+        return img, label
         
 
 class SampleParing(CustomTransforms):
@@ -79,7 +79,7 @@ class SampleParing(CustomTransforms):
             
             new = (img + rand_img) / 2
             new = Image.fromarray(np.uint8(new))
-            return [new, sample[1]]
+            return new, sample[1]
             
 
 class Smote(CustomTransforms):
@@ -97,7 +97,7 @@ class Smote(CustomTransforms):
         return self.dataset[nearest[:self.k]]
 
     def __call__(self, sample):
-        if (sample[1] == 1 | (random() > 0.5)):
+        if (sample[1] == 1) | (random() > 0.5)):
             return sample
         else:
             img = np.array(sample[0], dtype="float64")
@@ -106,7 +106,7 @@ class Smote(CustomTransforms):
             for nearest in nearests:
                 new += random() * (nearest - img)
             new = Image.fromarray(np.uint8(new))
-            return [new, 0]
+            return new, 0
 
 
 class CustomFolder(ImageFolder):
@@ -133,3 +133,129 @@ class CustomCompose(transforms.Compose):
         return img, label
         
 
+def find_energy(img):
+    L = []
+    G = [img]
+    for i in range(5):
+        G.append(cv2.GaussianBlur(img, (0, 0), sigmaX=2**i))
+        L.append(G[i] - G[i + 1])
+    L.append(G[-1])
+    L = np.array(L)
+    e = np.std(L, axis=(1, 2))
+    e = e[:, 0]
+    return L, e
+
+def iter_normalization(img, e_ref):
+    I_norm = img
+    for i in range(10):
+        I, e = find_energy(I_norm)
+        #I_norm = np.sum((e_ref / e).reshape(-1, 1, 1, 1) * I, axis=0)
+        I_norm = np.zeros(I_norm.shape)
+        for level, layer in enumerate(I):
+            I_norm += e_ref[level] / e[level] * I[level]
+    return I_norm
+
+def find_energy_ref():
+    energy = []
+    for file in os.listdir("dataset/ref"):
+        img = cv2.imread(os.path.join("dataset/ref" ,file)).astype('float')
+        img = cv2.resize(img, (280, 280))[28:252, 28:252]
+        I, e = find_energy(img)
+        energy.append(e)
+    energy = np.array(energy)
+    e_ref = np.average(energy, axis=0)
+    return e_ref
+
+
+class Normalization(CustomTransforms):
+
+    def __init__(self, e_ref):
+        self.e_ref = e_ref
+    
+    def __call__(self, sample):
+        img = np.array(sample[0]).astype(float)
+        I_norm = iter_normalization(img, self.e_ref)
+
+        I_norm = (I_norm - I_norm.min()) * (255/ (I_norm.max() - I_norm.min()))
+        I_norm = Image.fromarray(np.uint8(I_norm))
+        return I_norm, sample[1]
+
+def print_acc(model, dataloader, testloader):
+
+    TP = 0
+    TN = 0
+    FP = 0
+    FN = 0
+    model = model.eval()
+    with torch.no_grad():
+        for data in dataloader:
+            images, labels = data
+            images = images.cuda()
+            labels = labels.cuda()
+            outputs = model(images)
+            predicted = torch.zeros_like(outputs, dtype=torch.long)
+            predicted[outputs >= 0.5] = 1
+            for i, pred in enumerate(predicted):
+                if (pred == labels[i]) & (pred == 1):
+                    TN += 1
+                elif (pred == labels[i]) & (pred == 0):
+                    TP += 1
+                elif (pred != labels[i]) & (pred == 0):
+                    FP += 1
+                else:
+                    FN += 1
+
+    print("Training Acc: ",)
+    print('TP: %d  TN: %d  FP: %d  FN: %d' % (TP, TN, FP, FN))
+
+    TP = 0
+    TN = 0
+    FP = 0
+    FN = 0
+    with torch.no_grad():
+        for data in testloader:
+            images, labels = data
+            images = images.cuda()
+            labels = labels.cuda()
+            outputs = model(images)
+            predicted = torch.zeros_like(outputs, dtype=torch.long)
+            predicted[outputs >= 0.5] = 1
+            for i, pred in enumerate(predicted):
+                if (pred == labels[i]) & (pred == 1):
+                    TN += 1
+                elif (pred == labels[i]) & (pred == 0):
+                    TP += 1
+                elif (pred != labels[i]) & (pred == 0):
+                    FP += 1
+                else:
+                    FN += 1
+    print("Testing Acc: ",)
+    print('TP: %d  TN: %d  FP: %d  FN: %d' % (TP, TN, FP, FN))
+
+
+
+def training(model, epoch, dataset, testset, filename):
+    criterion = nn.BCELoss()
+    optimizer = optim.Adam(model.parameters(), lr=0.001)
+    dataloader = DataLoader(dataset, batch_size=16, shuffle=True, num_workers=4)
+    testloader = DataLoader(testset, batch_size=16, shuffle=False, num_workers=4)
+    with trange(epoch) as t:
+        for epoch in t:
+            t.set_description('EPOCH %i' % (epoch + 1))
+            running_loss = 0
+            for i, data in enumerate(dataloader, 0):
+                inputs, labels = data
+                inputs = inputs.cuda()
+                labels = labels.type(torch.FloatTensor).cuda()
+                optimizer.zero_grad()
+                outputs = model(inputs)
+                loss = criterion(outputs.squeeze(1), labels)
+                loss.backward()
+                optimizer.step()
+
+                running_loss += loss.item()
+            running_loss /= i
+            t.set_postfix(loss=running_loss)
+    print('Finished Training')
+    torch.save(model.state_dict(), filename)
+    print_acc(model, dataloader, testloader)
