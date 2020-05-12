@@ -60,7 +60,7 @@ class RICAP(CustomTransforms):
                 np.random.randint(w2), np.random.randint(w1)]
         locy = [np.random.randint(h2), np.random.randint(h2),
                 np.random.randint(h1), np.random.randint(h1)]
-	    areas = [w1*h1, w2*h1, w1*h2, w2*h2]
+        areas = [w1*h1, w2*h1, w1*h2, w2*h2]
         for i, area in zip(idx, areas):
             rand_img.append(np.array(self.dataset[i][0]))
             label += self.dataset[i][1] * area / size ** 2

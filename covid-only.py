@@ -19,7 +19,7 @@ data = CustomCompose([transforms.RandomHorizontalFlip(),
                       transforms.ToTensor(),
                       transforms.Normalize(mean=[0.5, 0.5, 0.5],
                                                  std=[0.5, 0.5, 0.5])])
-tests = CustomCompose([transforms.ToTensor(),
+test = CustomCompose([transforms.ToTensor(),
                        transforms.Normalize(mean=[0.5, 0.5, 0.5],
                                             std=[0.5, 0.5, 0.5])])
 
@@ -30,13 +30,13 @@ testset_unnormalized = CustomFolder(root='dataset/test_s', transform=test)
 testset_normalized = CustomFolder(root='dataset/test_sn', transform=test)
 
 DN = DenseNet121().cuda()
-VGG = VGG16().cuda()
 training(DN, 50,  dataset_unnormalized, testset_unnormalized, "DN-u-c.pth")
+VGG = VGG16().cuda()
 training(VGG, 50, dataset_unnormalized, testset_unnormalized, "vgg-u-c.pth")
 
 
 DN = DenseNet121().cuda()
-VGG = VGG16().cuda()
 training(DN, 50,  dataset_normalized, testset_normalized, "DN-n-c.pth")
+VGG = VGG16().cuda()
 training(VGG, 50, dataset_normalized, testset_normalized, "vgg-n-c.pth")
 

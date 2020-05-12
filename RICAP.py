@@ -14,8 +14,8 @@ import cv2
 from tqdm import tqdm, trange
 
 
-pre_processed = CustomFolder(root='dataset/train')
-pre_processed_norm = CustomFolder(root='dataset/train_n')
+pre_processed = CustomFolder(root='dataset/train',transform=CustomCompose([]))
+pre_processed_norm = CustomFolder(root='dataset/train_n', transform=CustomCompose([]))
 
 raw = np.array([np.array(image[0], dtype="float") for image in pre_processed])
 raw_norm = np.array([np.array(image[0], dtype="float") for image in pre_processed_norm])
@@ -44,10 +44,10 @@ testset_normalized = CustomFolder(root='dataset/test_n', transform=test)
 
 DN = DenseNet121().cuda()
 VGG = VGG16().cuda()
-training(DN, 50,  dataset_unnormalized, testset_unnormalized, "DN-u-sp.pth")
-training(VGG, 50, dataset_unnormalized, testset_unnormalized, "vgg-u-sp.pth")
+training(DN, 50,  dataset_unnormalized, testset_unnormalized, "DN-u-R.pth")
+training(VGG, 50, dataset_unnormalized, testset_unnormalized, "vgg-u-R.pth")
 
 DN = DenseNet121().cuda()
 VGG = VGG16().cuda()
-training(DN, 50,  dataset_normalized, testset_normalized, "DN-n-sp.pth")
-training(VGG, 50, dataset_normalized, testset_normalized, "vgg-n-sp.pth")
+training(DN, 50,  dataset_normalized, testset_normalized, "DN-n-R.pth")
+training(VGG, 50, dataset_normalized, testset_normalized, "vgg-n-R.pth")
