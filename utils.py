@@ -3,6 +3,12 @@ from torchvision import transforms
 import numpy as np
 from PIL import Image
 from random import random
+import os
+import cv2
+import torch
+from torch import optim, nn
+from torch.utils.data import Dataset, DataLoader
+from tqdm import tqdm, trange
 
 
 class CustomTransforms():
@@ -71,7 +77,7 @@ class SampleParing(CustomTransforms):
         self.minority_only = minority_only
 
     def __call__(self, sample):
-        if ((self.minority_only & sample[1] == 1) | (random() > 0.5)) :
+        if (((self.minority_only) & (sample[1] == 1)) | (random() > 0.5)) :
             return sample
         else:
             img = np.array(sample[0], dtype="float")
@@ -97,7 +103,7 @@ class Smote(CustomTransforms):
         return self.dataset[nearest[:self.k]]
 
     def __call__(self, sample):
-        if (sample[1] == 1) | (random() > 0.5)):
+        if (sample[1] == 1) | (random() > 0.5):
             return sample
         else:
             img = np.array(sample[0], dtype="float64")

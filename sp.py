@@ -68,5 +68,5 @@ training(VGG, 50, dataset_unnormalized, testset_unnormalized, "vgg-u-smote.pth")
 
 DN = DenseNet121().cuda()
 VGG = VGG16().cuda()
-training(DN, 50,  data_normalized, testset_normalized, "DN-n-smote.pth")
-training(VGG, 50, data_normalized, testset_normalized, "vgg-n-smote.pth")
+training(DN, 50,  dataset_normalized, testset_normalized, "DN-n-smote.pth")
+training(VGG, 50, dataset_normalized, testset_normalized, "vgg-n-smote.pth")

@@ -9,7 +9,7 @@ from torch import optim, nn
 from torch.utils.data import Dataset, DataLoader
 from torchvision import transforms, utils, datasets
 from utils import *
-from models import *
+from models imseport *
 import cv2
 from tqdm import tqdm, trange
 
@@ -54,5 +54,5 @@ training(VGG, 50, dataset_unnormalized, testset_unnormalized, "vgg-u-c.pth")
 
 DN = DenseNet121().cuda()
 VGG = VGG16().cuda()
-training(DN, 50,  data_normalized, testset_normalized, "DN-n-c.pth")
-training(VGG, 50, data_normalized, testset_normalized, "vgg-n-c.pth")
+training(DN, 50,  dataset_normalized, testset_normalized, "DN-n-c.pth")
+training(VGG, 50, dataset_normalized, testset_normalized, "vgg-n-c.pth")
