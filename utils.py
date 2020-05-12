@@ -47,25 +47,28 @@ class RICAP(CustomTransforms):
         idx = np.random.randint(len(self.dataset), size=3)
         rand_img = []
         label = sample[1]
-        for i in idx:
-            rand_img.append(np.array(self.dataset[i][0]))
-            label += self.dataset[i][1]
-        label /= 4
+
 
         w, h = np.random.beta(self.beta, self.beta, 2)
         w1 = int(size * w)
         h1 = int(size * h)
-        w_ = [w1, size - w1, w1, size - w1]
-        h_ = [h1, h1, size - h1, size - h1]
-        locx = [np.random.randint(size - w1), np.random.randint(w1),
-                np.random.randint(size - w1), np.random.randint(w1)]
-        locy = [np.random.randint(size - h1), np.random.randint(size - h1),
+        w2 = size - w1
+        h2 = size - h1
+        w_ = [w1, w2, w1, w2]
+        h_ = [h1, h1, h2, h2]
+        locx = [np.random.randint(w2), np.random.randint(w1),
+                np.random.randint(w2), np.random.randint(w1)]
+        locy = [np.random.randint(h2), np.random.randint(h2),
                 np.random.randint(h1), np.random.randint(h1)]
+	    areas = [w1*h1, w2*h1, w1*h2, w2*h2]
+        for i, area in zip(idx, areas):
+            rand_img.append(np.array(self.dataset[i][0]))
+            label += self.dataset[i][1] * area / size ** 2
         
         cat = [np.array(sample[0])[locx[0]:locx[0] + w_[0], locy[0]:locy[0] + h_[0]]]
         for i, img in enumerate(rand_img):
-            cat.append(img[locx[i + 1]:locx[i + 1] + w_[i + 1], locy[i + 1]:locy[i + 1] + h_[i + 1]])
-        img = np.hstack((np.vstack((cat[0], cat[1])), np.vstack((cat[2], cat[3]))))
+            cat.append(img[locy[i + 1]:locy[i + 1] + h_[i + 1], locx[i + 1]:locx[i + 1] + w_[i + 1]])
+        img = np.vstack((np.hstack((cat[0], cat[1])), np.hstack((cat[2], cat[3]))))
         img = Image.fromarray(img)
 
         return img, label

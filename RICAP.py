@@ -20,19 +20,19 @@ pre_processed_norm = CustomFolder(root='dataset/train_n')
 raw = np.array([np.array(image[0], dtype="float") for image in pre_processed])
 raw_norm = np.array([np.array(image[0], dtype="float") for image in pre_processed_norm])
 
-data = CustomCompose([SampleParing(raw, minority_only=False),
+data = CustomCompose([RICAP(raw),
                       transforms.RandomHorizontalFlip(),
                       transforms.RandomRotation(10)
                       transforms.ToTensor(),
                       transforms.Normalize(mean=[0.5, 0.5, 0.5],
                                            std=[0.5, 0.5, 0.5])])
 
-data_norm = CustomCompose([SampleParing(raw_norm, minority_only=False),
+data_norm = CustomCompose([RICAP(raw_norm),
                            transforms.RandomHorizontalFlip(),
                            transforms.RandomRotation(10),
                            transforms.ToTensor(),
                            transforms.Normalize(mean=[0.5, 0.5, 0.5],
-                                                     std=[0.5, 0.5, 0.5])])
+                                                std=[0.5, 0.5, 0.5])])
 test = CustomCompose([transforms.ToTensor(),
                       transforms.Normalize(mean=[0.5, 0.5, 0.5],
                                            std=[0.5, 0.5, 0.5])])

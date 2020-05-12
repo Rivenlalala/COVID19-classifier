@@ -14,38 +14,20 @@ import cv2
 from tqdm import tqdm, trange
 
 
-e_ref = find_energy_ref()
-
-unnormalized = CustomCompose([transforms.Resize((280, 280)),
-                            transforms.CenterCrop(224),
-                            transforms.RandomHorizontalFlip(),
-                            transforms.RandomRotation(10),
-                            transforms.ToTensor(),
-                            transforms.Normalize(mean=[0.5, 0.5, 0.5],
+data = CustomCompose([transforms.RandomHorizontalFlip(),
+                      transforms.RandomRotation(10),
+                      transforms.ToTensor(),
+                      transforms.Normalize(mean=[0.5, 0.5, 0.5],
                                                  std=[0.5, 0.5, 0.5])])
-unnormalized_test = CustomCompose([transforms.Resize((280, 280)),
-                                transforms.CenterCrop(224),
-                                transforms.ToTensor(),
-                                transforms.Normalize(mean=[0.5, 0.5, 0.5],
-                                                     std=[0.5, 0.5, 0.5])])
-normalized = CustomCompose([transforms.Resize((280, 280)),
-                                transforms.CenterCrop(224),
-                                Normalization(e_ref),
-                                transforms.RandomHorizontalFlip(),
-                                transforms.RandomRotation(10),
-                                transforms.ToTensor(),
-                                transforms.Normalize(mean=[0.5, 0.5, 0.5],
-                                                     std=[0.5, 0.5, 0.5])])
-normalized_test = CustomCompose([transforms.Resize((280, 280)),
-                                transforms.CenterCrop(224),
-                                Normalization(e_ref),
-                                transforms.ToTensor(),
-                                transforms.Normalize(mean=[0.5, 0.5, 0.5],
-                                                     std=[0.5, 0.5, 0.5])])
-dataset_unnormalized = CustomFolder(root='dataset/train', transform=unnormalized)
-dataset_normalized = CustomFolder(root='dataset/train', transform=normalized)
-testset_unnormalized = CustomFolder(root='dataset/test', transform=unnormalized_test)
-testset_normalized = CustomFolder(root='dataset/test', transform=normalized_test)
+test = CustomCompose([transforms.ToTensor(),
+                      transforms.Normalize(mean=[0.5, 0.5, 0.5],
+                                           std=[0.5, 0.5, 0.5])])
+
+
+dataset_unnormalized = CustomFolder(root='dataset/train', transform=data)
+dataset_normalized = CustomFolder(root='dataset/train_n', transform=data)
+testset_unnormalized = CustomFolder(root='dataset/test', transform=test)
+testset_normalized = CustomFolder(root='dataset/test_n', transform=test)
 
 DN = DenseNet121().cuda()
 VGG = VGG16().cuda()

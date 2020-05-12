@@ -16,37 +16,29 @@ from tqdm import tqdm, trange
 
 e_ref = find_energy_ref()
 
-pre_process = CustomCompose([transforms.Resize((280, 280)),
-                             transforms.CenterCrop(224)])
-pre_processed = CustomFolder(root='dataset/train', transform=pre_process)
-pre_processed_norm = CustomFolder(root='dataset/train_n', transform=pre_process)
+pre_processed = CustomFolder(root='dataset/train')
+pre_processed_norm = CustomFolder(root='dataset/train_n')
 
 minority = np.array([np.array(image[0], dtype="float") for image in pre_processed if image[1]==0])
 minority_norm = np.array([np.array(image[0], dtype="float") for image in pre_processed_norm if image[1]==0])
 
-data = CustomCompose([transforms.Resize((280, 280)),
-                            transforms.CenterCrop(224),
-                            Smote(minority, 5),
-                            transforms.RandomHorizontalFlip(),
-                            transforms.RandomRotation(10),
-                            transforms.ToTensor(),
-                            transforms.Normalize(mean=[0.5, 0.5, 0.5],
+data = CustomCompose([Smote(minority, 5),
+                      transforms.RandomHorizontalFlip(),
+                      transforms.RandomRotation(10),
+                      transforms.ToTensor()
+                      transforms.Normalize(mean=[0.5, 0.5, 0.5],
+                                           std=[0.5, 0.5, 0.5])])
+
+data_norm = CustomCompose([Smote(minority_norm, 5),
+                           transforms.RandomHorizontalFlip(),
+                           transforms.RandomRotation(10),
+                           transforms.ToTensor(),
+                           transforms.Normalize(mean=[0.5, 0.5, 0.5],
                                                  std=[0.5, 0.5, 0.5])])
 
-data_norm = CustomCompose([transforms.Resize((280, 280)),
-                            transforms.CenterCrop(224),
-                            Smote(minority_norm, 5),
-                            transforms.RandomHorizontalFlip(),
-                            transforms.RandomRotation(10),
-                            transforms.ToTensor(),
-                            transforms.Normalize(mean=[0.5, 0.5, 0.5],
-                                                 std=[0.5, 0.5, 0.5])])
-
-test = CustomCompose([transforms.Resize((280, 280)),
-                                transforms.CenterCrop(224),
-                                transforms.ToTensor(),
-                                transforms.Normalize(mean=[0.5, 0.5, 0.5],
-                                                     std=[0.5, 0.5, 0.5])])
+test = CustomCompose([transforms.ToTensor(),
+                      transforms.Normalize(mean=[0.5, 0.5, 0.5],
+                                           std=[0.5, 0.5, 0.5])])
                                                      
 dataset_unnormalized = CustomFolder(root='dataset/train', transform=data)
 dataset_normalized = CustomFolder(root='dataset/train_n', transform=data_norm)
