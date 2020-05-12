@@ -42,17 +42,17 @@ normalized_test = CustomCompose([transforms.Resize((280, 280)),
                                 transforms.ToTensor(),
                                 transforms.Normalize(mean=[0.5, 0.5, 0.5],
                                                      std=[0.5, 0.5, 0.5])])
-dataset_unnormalized = CustomFolder(root='dataset/train_s', transform=unnormalized)
-dataset_normalized = CustomFolder(root='dataset/train_s', transform=normalized)
-testset_unnormalized = CustomFolder(root='dataset/test_s', transform=unnormalized_test)
-testset_normalized = CustomFolder(root='dataset/test_s', transform=normalized_test)
+dataset_unnormalized = CustomFolder(root='dataset/train', transform=unnormalized)
+dataset_normalized = CustomFolder(root='dataset/train', transform=normalized)
+testset_unnormalized = CustomFolder(root='dataset/test', transform=unnormalized_test)
+testset_normalized = CustomFolder(root='dataset/test', transform=normalized_test)
 
 DN = DenseNet121().cuda()
 VGG = VGG16().cuda()
-training(DN, 50,  dataset_unnormalized, testset_unnormalized, "DN-u-c.pth")
-training(VGG, 50, dataset_unnormalized, testset_unnormalized, "vgg-u-c.pth")
+training(DN, 50,  dataset_unnormalized, testset_unnormalized, "DN-u-n.pth")
+training(VGG, 50, dataset_unnormalized, testset_unnormalized, "vgg-u-n.pth")
 
 DN = DenseNet121().cuda()
 VGG = VGG16().cuda()
-training(DN, 50,  data_normalized, testset_normalized, "DN-n-c.pth")
-training(VGG, 50, data_normalized, testset_normalized, "vgg-n-c.pth")
+training(DN, 50,  data_normalized, testset_normalized, "DN-n-n.pth")
+training(VGG, 50, data_normalized, testset_normalized, "vgg-n-n.pth")

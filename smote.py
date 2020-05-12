@@ -16,8 +16,20 @@ from tqdm import tqdm, trange
 
 e_ref = find_energy_ref()
 
+pre_process_norm = CustomCompose([transforms.Resize((280, 280)),
+                                  transforms.CenterCrop(224),
+                                  Normalization(e_ref)])
+pre_process = CustomCompose([transforms.Resize((280, 280)),
+                             transforms.CenterCrop(224)])
+pre_processed = CustomFolder(root='dataset/train', transform=pre_process)
+pre_processed_norm = CustomFolder(root='dataset/train', transform=pre_process_norm)
+
+minority = np.array([np.array(image[0], dtype="float") for image in pre_processed if image[1]==0])
+minority_norm = np.array([np.array(image[0], dtype="float") for image in pre_processed_norm if image[1]==0])
+
 unnormalized = CustomCompose([transforms.Resize((280, 280)),
                             transforms.CenterCrop(224),
+                            Smote(minority, 5),
                             transforms.RandomHorizontalFlip(),
                             transforms.RandomRotation(10),
                             transforms.ToTensor(),
@@ -31,6 +43,7 @@ unnormalized_test = CustomCompose([transforms.Resize((280, 280)),
 normalized = CustomCompose([transforms.Resize((280, 280)),
                                 transforms.CenterCrop(224),
                                 Normalization(e_ref),
+                                Smote(minority_norm, 5),
                                 transforms.RandomHorizontalFlip(),
                                 transforms.RandomRotation(10),
                                 transforms.ToTensor(),
@@ -42,17 +55,18 @@ normalized_test = CustomCompose([transforms.Resize((280, 280)),
                                 transforms.ToTensor(),
                                 transforms.Normalize(mean=[0.5, 0.5, 0.5],
                                                      std=[0.5, 0.5, 0.5])])
-dataset_unnormalized = CustomFolder(root='dataset/train_s', transform=unnormalized)
-dataset_normalized = CustomFolder(root='dataset/train_s', transform=normalized)
-testset_unnormalized = CustomFolder(root='dataset/test_s', transform=unnormalized_test)
-testset_normalized = CustomFolder(root='dataset/test_s', transform=normalized_test)
+                                                     
+dataset_unnormalized = CustomFolder(root='dataset/train', transform=unnormalized)
+dataset_normalized = CustomFolder(root='dataset/train', transform=normalized)
+testset_unnormalized = CustomFolder(root='dataset/test', transform=unnormalized_test)
+testset_normalized = CustomFolder(root='dataset/test', transform=normalized_test)
 
 DN = DenseNet121().cuda()
 VGG = VGG16().cuda()
-training(DN, 50,  dataset_unnormalized, testset_unnormalized, "DN-u-c.pth")
-training(VGG, 50, dataset_unnormalized, testset_unnormalized, "vgg-u-c.pth")
+training(DN, 50,  dataset_unnormalized, testset_unnormalized, "DN-u-smote.pth")
+training(VGG, 50, dataset_unnormalized, testset_unnormalized, "vgg-u-smote.pth")
 
 DN = DenseNet121().cuda()
 VGG = VGG16().cuda()
-training(DN, 50,  data_normalized, testset_normalized, "DN-n-c.pth")
-training(VGG, 50, data_normalized, testset_normalized, "vgg-n-c.pth")
+training(DN, 50,  data_normalized, testset_normalized, "DN-n-smote.pth")
+training(VGG, 50, data_normalized, testset_normalized, "vgg-n-smote.pth")
