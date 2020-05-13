@@ -7,7 +7,7 @@ import os
 import cv2
 import torch
 from torch import optim, nn
-from torch.utils.data import Dataset, DataLoader
+from torch.utils.data import Dataset, DataLoader, ConcatDataset
 from tqdm import tqdm, trange
 import copy
 
@@ -16,13 +16,27 @@ class CustomTransforms():
     pass
 
 
+class CustomDataset(ConcatDataset):
+
+    def __init__(self, datasets, transform=None):
+        super().__init__(datasets)
+        self.transform = transform
+
+    def __getitem__(self, idx):
+        sample = super().__getitem__(idx)
+        if self.transform is not None:
+            sample = self.transform((sample))
+
+        return sample
+
+
 class Majority(CustomTransforms):
 
     def __init__(self, raw_dataset):
         self.dataset = raw_dataset
     
     def __call__(self, sample):
-        if (sample[1] == 0) | (random() > 0.9):
+        if sample[1] == 0:
             return sample
         else:
             img = np.array(sample[0], dtype="float")
@@ -82,15 +96,12 @@ class SampleParing(CustomTransforms):
         self.minority_only = minority_only
 
     def __call__(self, sample):
-        if random() > 0.5:
-            return sample
-        else:
-            img = np.array(sample[0], dtype="float")
-            rand_img = self.dataset[np.random.randint(len(self.dataset))]
-            
-            new = (img + rand_img) / 2
-            new = Image.fromarray(np.uint8(new))
-            return new, sample[1]
+        img = np.array(sample[0], dtype="float")
+        rand_img = self.dataset[np.random.randint(len(self.dataset))]
+
+        new = (img + rand_img) / 2
+        new = Image.fromarray(np.uint8(new))
+        return new, sample[1]
             
 
 class Smote(CustomTransforms):
@@ -108,7 +119,7 @@ class Smote(CustomTransforms):
         return self.dataset[nearest[:self.k]]
 
     def __call__(self, sample):
-        if (sample[1] == 1) | (random() > 0.8):
+        if sample[1] == 1:
             return sample
         else:
             img = np.array(sample[0], dtype="float64")
@@ -276,7 +287,6 @@ def training(model, epoch, dataset, testset, filename):
     optimizer = optim.Adam(model.parameters(), lr=0.001)
     dataloader = DataLoader(dataset, batch_size=16, shuffle=True, num_workers=4)
     testloader = DataLoader(testset, batch_size=16, shuffle=False, num_workers=4)
-    scheduler = optim.lr_scheduler.StepLR(optimizer, 50, gamma=0.1, last_epoch=-1)
     best_acc = 0
     with trange(epoch) as t:
         for epoch in t:
@@ -291,7 +301,6 @@ def training(model, epoch, dataset, testset, filename):
                 loss = criterion(outputs.squeeze(1), labels)
                 loss.backward()
                 optimizer.step()
-                scheduler.step()
                 running_loss += loss.item()
             running_loss /= i
             t.set_postfix(loss=running_loss)
