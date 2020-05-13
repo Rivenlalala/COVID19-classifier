@@ -312,5 +312,5 @@ def training(model, epoch, dataset, validate, testset, filename):
                     best_acc = acc
     print('Finished Training')
     model = best_model
-    torch.save(model.state_dict(), filename)
+    torch.save(model.state_dict(), os.path.join('models', filename))
     print_acc(model, dataloader, testloader)
