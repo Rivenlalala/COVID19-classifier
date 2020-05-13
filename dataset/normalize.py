@@ -59,9 +59,7 @@ for dir1, dst in zip(dirs1, dsts):
             src = os.path.join(dir1, dir2, file)
             dest = os.path.join(dst, dir2, file)
             img = cv2.imread(src).astype("float")
-            img = cv2.resize(img, (280, 280))[28:252, 28:252]
             img_norm = normalization(e_ref, img)
             cv2.imwrite(dest, img_norm)
-            cv2.imwrite(src, img)
         
     
