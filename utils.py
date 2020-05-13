@@ -36,7 +36,7 @@ class Majority(CustomTransforms):
         self.dataset = raw_dataset
     
     def __call__(self, sample):
-        if sample[1] == 0:
+        if (sample[1] == 0) | (random() > 0.5):
             return sample
         else:
             img = np.array(sample[0], dtype="float")
@@ -67,6 +67,14 @@ class RICAP(CustomTransforms):
         w, h = np.random.beta(self.beta, self.beta, 2)
         w1 = int(size * w)
         h1 = int(size * h)
+        if w1 == 0:
+            w1 += 1
+        if w1 == 224:
+            w1 -= 1
+        if h1 == 0:
+            h1 += 1
+        if h1 == 224:
+            h1 -= 1
         w2 = size - w1
         h2 = size - h1
         w_ = [w1, w2, w1, w2]
@@ -311,6 +319,10 @@ def training(model, epoch, dataset, validate, testset, filename):
                     best_model = copy.deepcopy(model)
                     best_acc = acc
     print('Finished Training')
-    model = best_model
+    print(filename)
+    try:
+        model = best_model
+    except:
+        pass
     torch.save(model.state_dict(), os.path.join('models', filename))
     print_acc(model, dataloader, testloader)
