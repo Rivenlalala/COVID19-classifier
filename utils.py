@@ -293,6 +293,7 @@ def validation(model, dataloader):
 def training(model, epoch, dataset, validate, testset, filename):
     criterion = nn.BCELoss()
     optimizer = optim.Adam(model.parameters(), lr=0.001)
+    schedular = optim.lr_scheduler.MultiStepLR(optimizer, [40, 80], gamma=0.2, last_epoch=-1)
     dataloader = DataLoader(dataset, batch_size=8, shuffle=True, num_workers=4)
     valloader = DataLoader(validate, batch_size=8, shuffle=True, num_workers=4)
     testloader = DataLoader(testset, batch_size=8, shuffle=False, num_workers=4)
@@ -310,6 +311,7 @@ def training(model, epoch, dataset, validate, testset, filename):
                 loss = criterion(outputs.squeeze(1), labels)
                 loss.backward()
                 optimizer.step()
+                schedular.step()
                 running_loss += loss.item()
             running_loss /= i
             t.set_postfix(loss=running_loss)
