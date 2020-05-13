@@ -9,6 +9,7 @@ import torch
 from torch import optim, nn
 from torch.utils.data import Dataset, DataLoader
 from tqdm import tqdm, trange
+import copy
 
 
 class CustomTransforms():
@@ -275,7 +276,8 @@ def training(model, epoch, dataset, testset, filename):
     optimizer = optim.Adam(model.parameters(), lr=0.001)
     dataloader = DataLoader(dataset, batch_size=16, shuffle=True, num_workers=4)
     testloader = DataLoader(testset, batch_size=16, shuffle=False, num_workers=4)
-    schduler = optim.lr_scheduler.StepLR(optimizer, 50, gamma=0.1, last_epoch=-1)
+    scheduler = optim.lr_scheduler.StepLR(optimizer, 50, gamma=0.1, last_epoch=-1)
+    best_acc = 0
     with trange(epoch) as t:
         for epoch in t:
             t.set_description('EPOCH %i' % (epoch + 1))
