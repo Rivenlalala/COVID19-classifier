@@ -282,10 +282,11 @@ def validation(model, dataloader):
     model.train()
     return acc
 
-def training(model, epoch, valset, testset, filename):
+def training(model, epoch, dataset, validate, testset, filename):
     criterion = nn.BCELoss()
     optimizer = optim.Adam(model.parameters(), lr=0.001)
-    dataloader = DataLoader(valset, batch_size=16, shuffle=True, num_workers=4)
+    dataloader = DataLoader(dataset, batch_size=16, shuffle=True, num_workers=4)
+    valloader = DataLoader(validate, batch_size=16, shuffle=True, num_workers=4)
     testloader = DataLoader(testset, batch_size=16, shuffle=False, num_workers=4)
     best_acc = 0
     with trange(epoch) as t:
@@ -305,7 +306,7 @@ def training(model, epoch, valset, testset, filename):
             running_loss /= i
             t.set_postfix(loss=running_loss)
             if epoch > 90:
-                acc = validation(model, dataloader)
+                acc = validation(model, valloader)
                 if acc > best_acc:
                     best_model = copy.deepcopy(model)
                     best_acc = acc
