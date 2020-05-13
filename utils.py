@@ -282,10 +282,10 @@ def validation(model, dataloader):
     model.train()
     return acc
 
-def training(model, epoch, dataset, testset, filename):
+def training(model, epoch, valset, testset, filename):
     criterion = nn.BCELoss()
     optimizer = optim.Adam(model.parameters(), lr=0.001)
-    dataloader = DataLoader(dataset, batch_size=16, shuffle=True, num_workers=4)
+    dataloader = DataLoader(valset, batch_size=16, shuffle=True, num_workers=4)
     testloader = DataLoader(testset, batch_size=16, shuffle=False, num_workers=4)
     best_acc = 0
     with trange(epoch) as t:

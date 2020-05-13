@@ -4,9 +4,8 @@ from PIL import Image
 import cv2
 import numpy as np
 
-dirs1 = ["train", "test", "train_s", "test_s"]
-dirs2 = ["covid", 'normal']
-dsts = ["train_n", "test_n", "train_sn", "test_sn"]
+dir = "new_train
+dst = "new_train_n"
 
 
 
@@ -53,13 +52,15 @@ def normalization(e_ref, img):
 
 e_ref = find_energy_ref()
 
-for dir1, dst in zip(dirs1, dsts):
-    for dir2 in dirs2:
-        for file in tqdm(os.listdir(os.path.join(dir1, dir2))):
-            src = os.path.join(dir1, dir2, file)
-            dest = os.path.join(dst, dir2, file)
-            img = cv2.imread(src).astype("float")
-            img_norm = normalization(e_ref, img)
-            cv2.imwrite(dest, img_norm)
+
+for file in tqdm(os.listdir(dir))):
+    src = os.path.join(dir, file)
+    dest = os.path.join(dst, file)
+    img = cv2.imread(src).astype("float")
+    img = cv2.resize(img, (280, 280))[28:252, 28:252]
+    img_norm = normalization(e_ref, img)
+    img = np.uint8(img)
+    cv2.imwrite(dest, img_norm)
+    cv2.imwrite(src, img)
         
     
