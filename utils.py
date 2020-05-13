@@ -81,7 +81,7 @@ class SampleParing(CustomTransforms):
         self.minority_only = minority_only
 
     def __call__(self, sample):
-        if (((self.minority_only) & (sample[1] == 1)) | (random() > 0.5)) :
+        if random() > 0.5:
             return sample
         else:
             img = np.array(sample[0], dtype="float")
@@ -242,13 +242,40 @@ def print_acc(model, dataloader, testloader):
     print("Testing Acc: ",)
     print('TP: %d  TN: %d  FP: %d  FN: %d' % (TP, TN, FP, FN))
 
-
+def validation(model, dataloader):
+    
+    TP = 0
+    TN = 0
+    FP = 0
+    FN = 0
+    model = model.eval()
+    with torch.no_grad():
+        for data in dataloader:
+            images, labels = data
+            images = images.cuda()
+            labels = labels.cuda()
+            outputs = model(images)
+            predicted = torch.zeros_like(outputs, dtype=torch.long)
+            predicted[outputs >= 0.5] = 1
+            for i, pred in enumerate(predicted):
+                if (pred == labels[i]) & (pred == 1):
+                    TN += 1
+                elif (pred == labels[i]) & (pred == 0):
+                    TP += 1
+                elif (pred != labels[i]) & (pred == 0):
+                    FP += 1
+                else:
+                    FN += 1
+    acc = (TN + TP) / (TN + TP + FN + FP)
+    model.train()
+    return acc
 
 def training(model, epoch, dataset, testset, filename):
     criterion = nn.BCELoss()
     optimizer = optim.Adam(model.parameters(), lr=0.001)
     dataloader = DataLoader(dataset, batch_size=16, shuffle=True, num_workers=4)
     testloader = DataLoader(testset, batch_size=16, shuffle=False, num_workers=4)
+    schduler = optim.lr_scheduler.StepLR(optimizer, 50, gamma=0.1, last_epoch=-1)
     with trange(epoch) as t:
         for epoch in t:
             t.set_description('EPOCH %i' % (epoch + 1))
@@ -262,10 +289,16 @@ def training(model, epoch, dataset, testset, filename):
                 loss = criterion(outputs.squeeze(1), labels)
                 loss.backward()
                 optimizer.step()
-
+                scheduler.step()
                 running_loss += loss.item()
             running_loss /= i
             t.set_postfix(loss=running_loss)
+            if epoch > 90:
+                acc = validation(model, dataloader)
+                if acc > best_acc:
+                    best_model = copy.deepcopy(model)
+                    best_acc = acc
     print('Finished Training')
+    model = best_model
     torch.save(model.state_dict(), filename)
     print_acc(model, dataloader, testloader)
