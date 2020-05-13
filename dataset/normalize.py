@@ -4,9 +4,9 @@ from PIL import Image
 import cv2
 import numpy as np
 
-dirs1 = ["train/", "test/"]
+dirs1 = ["train", "test", "train_s", "test_s"]
 dirs2 = ["covid", 'normal']
-dsts = ["train_n/", "test_n/"]
+dsts = ["train_n", "test_n", "train_sn", "test_sn"]
 
 
 
@@ -59,7 +59,6 @@ for dir1, dst in zip(dirs1, dsts):
             src = os.path.join(dir1, dir2, file)
             dest = os.path.join(dst, dir2, file)
             img = cv2.imread(src).astype("float")
-            img = cv2.resize(img, (280, 280))[28:252, 28:252]
             img_norm = normalization(e_ref, img)
             cv2.imwrite(dest, img_norm)
         
