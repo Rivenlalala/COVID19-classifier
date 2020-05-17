@@ -293,16 +293,10 @@ def validation(model, dataloader):
 def training(model, epoch, dataset, validate, testset, filename):
     criterion = nn.BCELoss()
     optimizer = optim.Adam(model.parameters(), lr=0.001)
-<<<<<<< HEAD
     schedular = optim.lr_scheduler.MultiStepLR(optimizer, [40, 80], gamma=0.2, last_epoch=-1)
     dataloader = DataLoader(dataset, batch_size=8, shuffle=True, num_workers=4)
     valloader = DataLoader(validate, batch_size=8, shuffle=True, num_workers=4)
     testloader = DataLoader(testset, batch_size=8, shuffle=False, num_workers=4)
-=======
-    dataloader = DataLoader(dataset, batch_size=16, shuffle=True, num_workers=4)
-    valloader = DataLoader(validate, batch_size=16, shuffle=True, num_workers=4)
-    testloader = DataLoader(testset, batch_size=16, shuffle=False, num_workers=4)
->>>>>>> master
     best_acc = 0
     with trange(epoch) as t:
         for epoch in t:
